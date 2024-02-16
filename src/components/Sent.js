@@ -1,9 +1,9 @@
-import React, {useCallback, useEffect} from 'react'
-import axios from 'axios';
+import React from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { mailActions } from '../store/mailReducer';
 import EmailBody from './EmailBody';
 import "./EmailList.css";
+import useFetchEmails from '../customHooks/useFetchEmails';
 
 const Sent =() => {
 
@@ -11,32 +11,10 @@ const Sent =() => {
 
   const sent = useSelector((state) => state.mail.sent);
   const user = useSelector(state => state.auth.email);
+  const Username = user.split('@')[0];
+  const getEmailsUrl = `https://mailbox-client-b0de0-default-rtdb.firebaseio.com/sent/${Username}.json`;
 
-
-  const getSentEmails = useCallback(async() => {
-    const Username = user.split('@')[0];
-    console.log(Username);
-
-    const getEmailsUrl = `https://mailbox-client-b0de0-default-rtdb.firebaseio.com/sent/${Username}.json`;
-    const response = await axios(getEmailsUrl);
-
-    if (response.data) {
-      const emailArray = [];
-      for (const key in response.data) {
-        emailArray.push({ id: key, ...response.data[key] });
-      }
-      // Sort emails based on the timestamp in descending order
-      emailArray.sort((a, b) => new Date(b.timeStamp) - new Date(a.timeStamp));
-      dispatch(mailActions.setSentBox(emailArray));
-    }
-
-
-
-  },[user,dispatch]);
-
-  useEffect(() => {
-    getSentEmails();
-  }, [getSentEmails])
+  useFetchEmails(getEmailsUrl, (emailArray) => dispatch(mailActions.setSentBox(emailArray)), [user, dispatch]);
 
   return (
     <div className="email-list">

@@ -1,43 +1,18 @@
 import "./EmailList.css";
 import EmailBody from "./EmailBody";
 import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
-import { useCallback, useEffect } from "react";
 import { mailActions } from "../store/mailReducer";
+import useFetchEmails from "../customHooks/useFetchEmails";
 
 const EmailList = () => {
   const dispatch = useDispatch();
 
   const emails = useSelector((state) => state.mail.emails);
   const user = useSelector((state) => state.auth.email);
+  const Username = user.split('@')[0];
+  const getEmailsUrl = `https://mailbox-client-b0de0-default-rtdb.firebaseio.com/inbox/${Username}.json`;
 
-  const getInboxEmails = useCallback(async () => {
-    const Username = user.split('@')[0];
-
-    const getEmailsUrl = `https://mailbox-client-b0de0-default-rtdb.firebaseio.com/inbox/${Username}.json`;
-    const response = await axios(getEmailsUrl);
-
-    if (response.data) {
-      const emailArray = [];
-      for (const key in response.data) {
-        emailArray.push({ id: key, ...response.data[key] });
-      }
-      // Sort emails based on the timestamp in descending order
-      emailArray.sort((a, b) => new Date(b.timeStamp) - new Date(a.timeStamp));
-      dispatch(mailActions.setEmails(emailArray));
-    }
-  }, [user, dispatch]);
-
-  useEffect(() => {
-    getInboxEmails();
-    // For Making the mails Realtime
-    // const intervalId = setInterval(() => {
-    //   getInboxEmails();
-    // }, 2000);
-
-    // Clean up the interval when the component is unmounted
-    // return () => clearInterval(intervalId);
-  }, [getInboxEmails]);
+  useFetchEmails(getEmailsUrl, (emailArray) => dispatch(mailActions.setEmails(emailArray)), [user, dispatch]);
 
   return (
     <div className="email-list">
