@@ -30,6 +30,13 @@ const EmailList = () => {
 
   useEffect(() => {
     getInboxEmails();
+    // For Making the mails Realtime
+    // const intervalId = setInterval(() => {
+    //   getInboxEmails();
+    // }, 2000);
+
+    // Clean up the interval when the component is unmounted
+    // return () => clearInterval(intervalId);
   }, [getInboxEmails]);
 
   return (
